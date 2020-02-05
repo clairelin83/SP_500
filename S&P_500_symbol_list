@@ -1,0 +1,26 @@
+import requests
+url ='https://en.wikipedia.org/wiki/List_of_S%26P_500_companies'
+
+r = requests.get(url)
+dataframe = r.text.split('Founded')[1].split('0001555280')[0]
+hypersplit = dataframe.split('href="')
+
+data = {'symbol':[]}
+
+for position in range(len(hypersplit)):
+    if 'nyse' in hypersplit[position]:
+        if 'quote' in hypersplit[position]:
+            value = hypersplit[position].split('">')[1].split('</a')[0]
+            data['symbol'].append(value)
+    elif "nasdaq" in hypersplit[position]:
+        if "symbol" in hypersplit[position]:
+            value = hypersplit[position].split('">')[1].split('</a')[0]
+            data['symbol'].append(value)
+    elif "cboe" in hypersplit[position]:
+        value = hypersplit[position].split('">')[1].split('</a')[0]
+        data['symbol'].append(value)
+
+print(data)
+print(len(data['symbol']))
+
+
