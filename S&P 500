@@ -23,8 +23,6 @@ data ={"Company":[]}
 start = 4 
 tracker = 0 
 hyperSplit = wikiDataTable.split('href=')
-#print(wikiDataTable.split('href=')[9].split('">')[1].split('</a')[0]) 
-#5->9->13
 
 for position in range(len(hyperSplit)):
     if position > start:
@@ -61,7 +59,6 @@ indicators ={
              "1y Target Est":[]	
 }
 
-#counter = 0 
 
 # loop url 
 for company in data['Company']:
@@ -101,4 +98,4 @@ now = datetime.date.today()
 #print(now)
 
 output_file_name = str('S&P500_2_'+str(now).replace('-','_')+'.csv')
-df.to_csv('/Users/clairelin/Downloads/'+ output_file_name,index=False, encoding='utf_8_sig')
+df.to_csv(output_file_name,index=False, encoding='utf_8_sig')
