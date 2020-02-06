@@ -1,0 +1,104 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import requests
+import pandas as pd 
+import datetime
+
+# scrap wiki url 
+wikiurl = 'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies'
+wikiresponse = requests.get(wikiurl)
+
+# point out datatable 
+wikifisrtsplit = wikiresponse.text.split('0001555280')[0]
+wikiDataTable = wikifisrtsplit.split('500 component stocks')[3]
+
+#print(response)
+#print(response.status_code)
+
+# create a dic.
+data ={"Company":[]}
+
+# get company code 
+start = 4 
+tracker = 0 
+hyperSplit = wikiDataTable.split('href=')
+#print(wikiDataTable.split('href=')[9].split('">')[1].split('</a')[0]) 
+#5->9->13
+
+for position in range(len(hyperSplit)):
+    if position > start:
+
+        value = hyperSplit[position].split('">')[1].split('</a')[0]
+        #print (hyperSplit[position].split('</a')[0])
+        if "nyse" in hyperSplit[position].split('</a')[0]:
+            if "quote" in hyperSplit[position].split('</a')[0]:
+                data['Company'].append(value)
+        elif "nasdaq" in hyperSplit[position].split('</a')[0]:
+            if "symbol" in hyperSplit[position].split('</a')[0]:
+                data['Company'].append(value)
+        elif "cboe" in hyperSplit[position].split('</a')[0]:
+                data['Company'].append(value)
+
+
+# make dic. 
+indicators ={
+             "Previous Close":[],	
+             "Open":[],
+             "Bid":[],	
+             "Ask":[],
+             "Day&#x27;s Range":[],
+             "52 Week Range":[],
+             "Forward Dividend &amp; Yield":[],
+             "Volume":[],
+             "Avg. Volume":[],	
+             "Market Cap":[],
+             "Beta (5Y Monthly)":[],
+             "PE Ratio (TTM)":[],
+             "EPS (TTM)":[],
+             "Earnings Date":[],
+             "Ex-Dividend Date":[],	
+             "1y Target Est":[]	
+}
+
+#counter = 0 
+
+# loop url 
+for company in data['Company']:
+    url = ('https://finance.yahoo.com/quote/'+company)
+    response = requests.get(url)
+    HTMLtext = response.text
+
+
+
+    for indicator in indicators:
+        try:
+            splitlist = HTMLtext.split(indicator)
+                                    #print(len(splitlist))
+            Datavalue = splitlist[1].split("\">")[1]
+            if "</td>" in Datavalue:
+                datavalue = splitlist[1].split("\">")[1].split('</td>')[0]
+                indicators[indicator].append(datavalue)
+            else:
+                datavalue = splitlist[1].split("\">")[2].split('</span>')[0]
+                indicators[indicator].append(datavalue)
+        except:
+            indicators[indicator].append('N/A')
+
+print(indicators)
+#print(len(indicators['Open']))
+
+# pandas 
+data.update(indicators)
+df = pd.DataFrame(data)
+df.rename(columns={"Day&#x27;s Range": "Day\'s Range", "Forward Dividend &amp; Yield": "Forward Dividend & Yield"}, inplace=True)
+print (df)
+
+
+# csv
+now = datetime.date.today()
+
+#print(now)
+
+output_file_name = str('S&P500_2_'+str(now).replace('-','_')+'.csv')
+df.to_csv('/Users/clairelin/Downloads/'+ output_file_name,index=False, encoding='utf_8_sig')
